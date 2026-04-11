@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rezwan Ahamed — Motion & Video Editor</title>
+  <meta name="description" content="Professional video editor and motion graphics designer based in Bangladesh. Creating cinematic content that grabs attention and drives results.">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <!-- EmailJS SDK (for contact form — sends email without backend) -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <style>
+    /* ═══════════════════════════════════════════════
+       RESET & ROOT VARIABLES
+    ═══════════════════════════════════════════════ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:      #0a0a0a;
+      --bg2:     #111111;
+      --text:    #f0ede8;
+      --muted:   #555;
+      --muted2:  #888;
+      --accent:  #ff4d00;
+      --accent2: #ff7a3d;
+      --border:  rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;  /* custom cursor on desktop */
+    }
+
+    body.loading { overflow: hidden; }
+
+    /* ═══════════════════════════════════════════════
+       SCROLL PROGRESS BAR (top of page)
+    ═══════════════════════════════════════════════ */
+    #scroll-bar {
+      position: fixed; top: 0; left: 0;
+      height: 2px; width: 0%;
+      background: var(--accent);
+      z-index: 9997; pointer-events: none;
+    }
+
+    /* ═══════════════════════════════════════════════
+       PAGE LOADER
+    ═══════════════════════════════════════════════ */
+    #loader {
+      position: fixed; inset: 0; z-index: 99999;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 40px;
+    }
+    #loader.hide {
+      pointer-events: none;
+      animation: loaderExit .9s cubic-bezier(.76,0,.24,1) forwards;
+    }
+    @keyframes loaderExit {
+      0%   { transform: translateY(0); }
+      60%  { transform: translateY(-6%); }
+      100% { transform: translateY(-100%); }
+    }
+    .ld-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(36px, 6vw, 64px);
+      letter-spacing: .14em; color: var(--text);
+      opacity: 0; animation: ldFadeUp .55s .1s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    .ld-logo span { color: var(--accent); }
+    .ld-tagline {
+      font-size: 11px; letter-spacing: .28em;
+      text-transform: uppercase; color: var(--muted2);
+      opacity: 0; animation: ldFadeUp .55s .3s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    .ld-bar-wrap {
+      width: min(320px, 70vw); display: flex;
+      flex-direction: column; gap: 10px;
+      opacity: 0; animation: ldFadeUp .55s .45s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    .ld-bar-track { width: 100%; height: 1px; background: var(--border2); position: relative; overflow: hidden; }
+    .ld-bar-fill  { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: var(--accent); transition: width .08s linear; }
+    .ld-bar-pct   { font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: .1em; color: var(--muted); align-self: flex-end; }
+    .ld-corner    { position: absolute; width: 18px; height: 18px; border-color: rgba(255,77,0,.3); border-style: solid; }
+    .ld-corner.tl { top: 24px; left: 24px; border-width: 1px 0 0 1px; }
+    .ld-corner.tr { top: 24px; right: 24px; border-width: 1px 1px 0 0; }
+    .ld-corner.bl { bottom: 24px; left: 24px; border-width: 0 0 1px 1px; }
+    .ld-corner.br { bottom: 24px; right: 24px; border-width: 0 1px 1px 0; }
+    .ld-scan {
+      position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255,77,0,.04), transparent);
+      animation: ldScan 1.6s .2s ease-in-out infinite; pointer-events: none;
+    }
+    @keyframes ldScan   { from { left: -60%; } to { left: 100%; } }
+    @keyframes ldFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ═══════════════════════════════════════════════
+       CUSTOM CURSOR (desktop only)
+    ═══════════════════════════════════════════════ */
+    #cur {
+      position: fixed; width: 8px; height: 8px;
+      background: var(--accent); border-radius: 50%;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: width .3s, height .3s, background .3s;
+    }
+    #cur-ring {
+      position: fixed; width: 32px; height: 32px;
+      border: 1px solid rgba(255,77,0,.35); border-radius: 50%;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%,-50%);
+    }
+    body.hovering #cur { width: 40px; height: 40px; background: transparent; border: 1px solid var(--accent); }
+
+    /* ═══════════════════════════════════════════════
+       NAV
+    ═══════════════════════════════════════════════ */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 24px 48px;
+      transition: background .4s, backdrop-filter .4s;
+    }
+    nav.scrolled {
+      background: rgba(10,10,10,.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: .12em; color: var(--text); text-decoration: none; }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; color: var(--muted2); transition: color .3s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta { padding: 10px 22px; border: 1px solid var(--accent); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); text-decoration: none; transition: background .3s, color .3s; }
+    .nav-cta:hover { background: var(--accent); color: #000; }
+
+    /* Hamburger (mobile) */
+    .nav-hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      cursor: pointer; padding: 4px; background: none; border: none;
+    }
+    .nav-hamburger span {
+      display: block; width: 24px; height: 1.5px;
+      background: var(--text); transition: transform .3s, opacity .3s;
+    }
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* Mobile menu overlay */
+    .mobile-menu {
+      position: fixed; inset: 0; z-index: 99; background: rgba(10,10,10,.97);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 40px; opacity: 0; pointer-events: none; transition: opacity .35s;
+    }
+    .mobile-menu.open { opacity: 1; pointer-events: all; }
+    .mobile-menu a {
+      font-family: 'Bebas Neue', sans-serif; font-size: 52px;
+      letter-spacing: .1em; color: var(--text); text-decoration: none;
+      transition: color .3s;
+    }
+    .mobile-menu a:hover { color: var(--accent); }
+
+    /* ═══════════════════════════════════════════════
+       HERO SECTION
+    ═══════════════════════════════════════════════ */
+    #hero {
+      min-height: 100vh;
+      display: grid; grid-template-columns: 1fr 1fr;
+      align-items: center; padding: 0 48px; gap: 60px;
+      position: relative; overflow: hidden;
+    }
+    .hero-line {
+      position: absolute; top: 0; left: 50%; width: 1px; height: 100%;
+      background: linear-gradient(to bottom, transparent, var(--border) 20%, var(--border) 80%, transparent);
+    }
+    .hero-orb {
+      position: absolute; width: 700px; height: 700px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,77,0,.07) 0%, transparent 65%);
+      pointer-events: none; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      will-change: transform; transition: transform .1s linear;
+    }
+    /* Available badge */
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted2);
+      margin-bottom: 32px; opacity: 0; animation: fadeUp .7s .2s forwards;
+    }
+    .hero-tag::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(72px, 9vw, 130px);
+      line-height: .92; letter-spacing: .02em;
+      opacity: 0; animation: fadeUp .8s .4s forwards;
+    }
+    .hero-title .line2 { color: transparent; -webkit-text-stroke: 1px rgba(240,237,232,.2); }
+    .hero-title .accent { color: var(--accent); }
+    .hero-desc {
+      margin-top: 36px; font-size: 14px; color: var(--muted2);
+      line-height: 1.8; max-width: 420px;
+      opacity: 0; animation: fadeUp .8s .6s forwards;
+    }
+    .hero-btns {
+      display: flex; gap: 16px; align-items: center; margin-top: 48px;
+      opacity: 0; animation: fadeUp .8s .8s forwards;
+    }
+    .btn-main {
+      padding: 14px 32px; background: var(--accent);
+      font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+      color: #000; text-decoration: none; font-weight: 500;
+      transition: background .3s, transform .25s;
+    }
+    .btn-main:hover { background: var(--accent2); transform: translateY(-3px); }
+    .btn-ghost {
+      font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted2); text-decoration: none; transition: color .3s;
+    }
+    .btn-ghost:hover { color: var(--text); }
+
+    /* Hero right — photo + reel */
+    .hero-right { opacity: 0; animation: fadeIn 1s .5s forwards; }
+    .hero-reel {
+      aspect-ratio: 9/16; max-height: 75vh;
+      background: var(--bg2); border: 1px solid var(--border2);
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      will-change: transform; cursor: none;
+    }
+    /* Your actual photo fills the reel */
+    .hero-photo {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: center top;
+      opacity: .85; transition: opacity .4s, transform .7s cubic-bezier(.16,1,.3,1);
+    }
+    .hero-reel:hover .hero-photo { opacity: .6; transform: scale(1.04); }
+    /* Play button overlay */
+    .reel-overlay {
+      position: absolute; inset: 0; z-index: 2;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      padding: 28px; background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 50%);
+    }
+    .reel-play-btn {
+      width: 56px; height: 56px; border: 1px solid rgba(255,255,255,.5); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 20px;
+      transition: border-color .3s, transform .3s;
+      margin-bottom: 12px;
+    }
+    .hero-reel:hover .reel-play-btn { border-color: var(--accent); transform: scale(1.1); color: var(--accent); }
+    .reel-label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+    /* Corner brackets on reel */
+    .reel-corner { position: absolute; width: 20px; height: 20px; border-color: var(--accent); border-style: solid; z-index: 3; }
+    .reel-corner.tl { top: 12px; left: 12px; border-width: 1px 0 0 1px; }
+    .reel-corner.tr { top: 12px; right: 12px; border-width: 1px 1px 0 0; }
+    .reel-corner.bl { bottom: 12px; left: 12px; border-width: 0 0 1px 1px; }
+    .reel-corner.br { bottom: 12px; right: 12px; border-width: 0 1px 1px 0; }
+
+    /* Stats below reel */
+    .hero-stats { display: flex; gap: 2px; margin-top: 2px; }
+    .hstat { flex: 1; padding: 16px; background: var(--bg2); border: 1px solid var(--border); }
+    .hstat-num { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--accent); display: inline-block; }
+    .hstat-num.active { text-shadow: 0 0 24px rgba(255,77,0,.45); }
+    .hstat-label { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted2); margin-top: 2px; }
+
+    /* ═══════════════════════════════════════════════
+       TICKER / MARQUEE
+    ═══════════════════════════════════════════════ */
+    .ticker { overflow: hidden; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 14px 0; background: var(--bg2); }
+    .ticker-track { display: flex; width: max-content; animation: tick 20s linear infinite; }
+    .ticker-item { display: flex; align-items: center; gap: 48px; padding: 0 48px; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+    .ticker-item span { color: var(--accent); font-size: 8px; }
+    @keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ═══════════════════════════════════════════════
+       SECTION DIVIDER
+    ═══════════════════════════════════════════════ */
+    .section-rule {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--accent), transparent);
+      opacity: 0; transform: scaleX(0); transform-origin: center;
+      transition: opacity .7s ease, transform 1s cubic-bezier(.16,1,.3,1);
+    }
+    .section-rule.visible { opacity: .25; transform: scaleX(1); }
+
+    /* Clip-wipe entrance for sections */
+    .section-wipe { clip-path: inset(6% 0 6% 0); opacity: .4; transition: clip-path 1s cubic-bezier(.16,1,.3,1), opacity .8s ease; }
+    .section-wipe.wipe-in { clip-path: inset(0% 0 0% 0); opacity: 1; }
+
+    /* ═══════════════════════════════════════════════
+       SHARED SECTION TYPOGRAPHY
+    ═══════════════════════════════════════════════ */
+    .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 60px; }
+    .section-eyebrow { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px, 6vw, 80px); line-height: .95; letter-spacing: .03em; }
+    .section-link { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted2); text-decoration: none; transition: color .3s; }
+    .section-link:hover { color: var(--text); }
+
+    /* ═══════════════════════════════════════════════
+       WORK / PORTFOLIO
+    ═══════════════════════════════════════════════ */
+    #work { padding: 100px 48px; }
+    .works-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border); }
+    .work-item { position: relative; overflow: hidden; background: var(--bg); cursor: none; }
+    .work-thumb { aspect-ratio: 16/9; background: var(--bg2); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+    .work-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .7s cubic-bezier(.16,1,.3,1); }
+    .work-item:hover .work-thumb img { transform: scale(1.05); }
+    .work-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 60%); opacity: 0; transition: opacity .4s; display: flex; align-items: flex-end; padding: 24px; }
+    .work-item:hover .work-overlay { opacity: 1; }
+    .work-play { width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
+    .work-info { padding: 20px 24px; border-top: 1px solid var(--border); }
+    .work-title { font-size: 16px; font-weight: 400; margin-bottom: 6px; }
+    .work-meta { display: flex; justify-content: space-between; align-items: center; }
+    .work-tag  { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+    .work-year { font-size: 10px; color: var(--muted); }
+
+    /* ═══════════════════════════════════════════════
+       TESTIMONIALS
+    ═══════════════════════════════════════════════ */
+    #testimonials { padding: 100px 48px; background: var(--bg); overflow: hidden; }
+    .testi-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 60px; }
+    .testi-track-wrap { position: relative; }
+    .testi-track { display: flex; gap: 24px; transition: transform .6s cubic-bezier(.16,1,.3,1); }
+    .testi-card { flex: 0 0 calc(50% - 12px); background: var(--bg2); border: 1px solid var(--border); padding: 40px; position: relative; transition: border-color .3s, transform .4s cubic-bezier(.16,1,.3,1); }
+    .testi-card:hover { border-color: rgba(255,77,0,.3); transform: translateY(-5px); }
+    .testi-quote-mark { font-family: 'Bebas Neue', sans-serif; font-size: 80px; color: var(--accent); line-height: .7; margin-bottom: 20px; opacity: .4; }
+    .testi-text { font-size: 15px; color: var(--muted2); line-height: 1.85; margin-bottom: 32px; font-style: italic; }
+    .testi-author { display: flex; align-items: center; gap: 14px; }
+    .testi-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #000; flex-shrink: 0; }
+    .testi-name  { font-size: 14px; font-weight: 500; color: var(--text); }
+    .testi-role  { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+    .testi-stars { display: flex; gap: 4px; margin-bottom: 20px; }
+    .testi-star  { color: var(--accent); font-size: 13px; }
+    .testi-controls { display: flex; align-items: center; gap: 16px; margin-top: 40px; }
+    .testi-btn { width: 44px; height: 44px; border: 1px solid var(--border2); background: transparent; color: var(--muted2); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color .3s, color .3s, transform .2s; }
+    .testi-btn:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.1); }
+    .testi-dots { display: flex; gap: 8px; }
+    .testi-dot { width: 24px; height: 2px; background: var(--border2); transition: background .3s, width .3s; cursor: pointer; }
+    .testi-dot.active { background: var(--accent); width: 40px; }
+
+    /* ═══════════════════════════════════════════════
+       SERVICES
+    ═══════════════════════════════════════════════ */
+    #services { padding: 100px 48px; background: var(--bg2); }
+    .svc-item { display: grid; grid-template-columns: 80px 1fr 1fr auto; align-items: center; gap: 40px; padding: 32px 0; border-bottom: 1px solid var(--border); transition: padding .3s; cursor: default; position: relative; }
+    .svc-item::before { content: ''; position: absolute; left: 0; bottom: 0; height: 1px; width: 0; background: var(--accent); transition: width .4s; }
+    .svc-item:hover::before { width: 100%; }
+    .svc-item:hover { padding-left: 16px; }
+    .svc-num  { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: var(--border2); transition: color .3s; }
+    .svc-item:hover .svc-num { color: var(--accent); }
+    .svc-name { font-size: 22px; font-weight: 400; }
+    .svc-desc { font-size: 13px; color: var(--muted2); line-height: 1.7; }
+    .svc-arrow { font-size: 20px; color: var(--muted); transition: color .3s, transform .3s; }
+    .svc-item:hover .svc-arrow { color: var(--accent); transform: translateX(6px); }
+
+    /* ═══════════════════════════════════════════════
+       ABOUT
+    ═══════════════════════════════════════════════ */
+    #about { padding: 100px 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .about-visual { position: relative; }
+    .about-photo { aspect-ratio: 3/4; overflow: hidden; }
+    .about-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+    .about-badge {
+      position: absolute; bottom: -20px; right: -20px;
+      width: 120px; height: 120px; background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; text-align: center; gap: 2px;
+    }
+    .badge-num   { font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: #000; line-height: 1; }
+    .badge-label { font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: rgba(0,0,0,.6); }
+    .about-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px, 5vw, 70px); line-height: .95; margin: 16px 0 28px; }
+    .about-title em { font-style: normal; color: var(--accent); }
+    .about-text  { font-size: 14px; color: var(--muted2); line-height: 1.9; margin-bottom: 16px; }
+    .tools-label { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin: 40px 0 16px; }
+    .tools-list  { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tool-tag    { padding: 7px 14px; border: 1px solid var(--border2); font-size: 11px; letter-spacing: .08em; color: var(--muted2); transition: border-color .3s, color .3s, transform .2s; }
+    .tool-tag:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+    /* ═══════════════════════════════════════════════
+       CONTACT
+    ═══════════════════════════════════════════════ */
+    #contact { padding: 100px 48px; background: var(--bg2); position: relative; overflow: hidden; }
+    .contact-bg-text { position: absolute; bottom: -40px; right: -20px; font-family: 'Bebas Neue', sans-serif; font-size: 220px; color: rgba(255,255,255,.02); line-height: 1; pointer-events: none; user-select: none; }
+    .contact-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; position: relative; }
+    .contact-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(50px, 8vw, 110px); line-height: .9; margin: 16px 0 32px; }
+    .contact-title em { font-style: normal; color: var(--accent); }
+    .contact-sub    { font-size: 14px; color: var(--muted2); line-height: 1.8; max-width: 360px; margin-bottom: 48px; }
+    .contact-socials { display: flex; flex-direction: column; gap: 12px; }
+    .c-social { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border: 1px solid var(--border); text-decoration: none; color: var(--text); transition: border-color .3s, background .3s, transform .3s; font-size: 14px; }
+    .c-social:hover { border-color: var(--accent); background: rgba(255,77,0,.04); transform: translateX(6px); }
+
+    /* Contact Form */
+    .contact-form { display: flex; flex-direction: column; gap: 24px; }
+    .f-group    { display: flex; flex-direction: column; gap: 8px; }
+    .f-label    { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+    .f-input, .f-textarea {
+      background: transparent; border: none;
+      border-bottom: 1px solid var(--border2);
+      padding: 12px 0; color: var(--text);
+      font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+      outline: none; transition: border-color .3s; cursor: text;
+      width: 100%;
+    }
+    .f-input:focus, .f-textarea:focus { border-color: var(--accent); }
+    .f-textarea { resize: none; height: 90px; }
+    .f-submit {
+      align-self: flex-start; padding: 14px 36px; background: var(--accent);
+      color: #000; font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+      font-weight: 500; border: none; cursor: pointer;
+      transition: background .3s, transform .25s;
+    }
+    .f-submit:hover { background: var(--accent2); transform: translateY(-3px); }
+    .f-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* Form status messages */
+    .form-status { font-size: 13px; letter-spacing: .08em; padding: 12px 0; display: none; }
+    .form-status.success { color: #4caf50; display: block; }
+    .form-status.error   { color: var(--accent); display: block; }
+
+    /* ═══════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════ */
+    footer { padding: 28px 48px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .foot-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: .1em; color: var(--muted); }
+    .foot-copy { font-size: 11px; color: var(--muted); }
+    .foot-top  { font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: .1em; text-transform: uppercase; transition: color .3s; }
+    .foot-top:hover { color: var(--accent); }
+
+    /* ═══════════════════════════════════════════════
+       REVEAL ANIMATIONS
+    ═══════════════════════════════════════════════ */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .reveal { opacity: 0; transform: translateY(36px); transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-d1 { transition-delay: .1s; }
+    .reveal-d2 { transition-delay: .2s; }
+    .reveal-d3 { transition-delay: .3s; }
+
+    /* ═══════════════════════════════════════════════
+       VIDEO LIGHTBOX
+    ═══════════════════════════════════════════════ */
+    #vid-lightbox { position: fixed; inset: 0; z-index: 99998; background: rgba(0,0,0,.93); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+    #vid-lightbox.open { opacity: 1; pointer-events: all; }
+    .vid-wrap { position: relative; width: min(900px, 92vw); aspect-ratio: 16/9; }
+    .vid-wrap iframe { width: 100%; height: 100%; border: none; }
+    .vid-close { position: absolute; top: -44px; right: 0; width: 36px; height: 36px; border: 1px solid rgba(255,255,255,.3); background: transparent; color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color .3s, color .3s; }
+    .vid-close:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE — MOBILE
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      /* Nav: hide desktop links, show hamburger */
+      nav { padding: 18px 24px; }
+      .nav-links, .nav-cta { display: none; }
+      .nav-hamburger { display: flex; }
+
+      /* Hero: single column */
+      #hero { grid-template-columns: 1fr; padding: 100px 24px 60px; gap: 40px; }
+      .hero-line, .hero-orb { display: none; }
+      .hero-reel { aspect-ratio: 16/9; max-height: none; }
+
+      /* Sections: less padding */
+      #work, #services, #about, #contact, #testimonials { padding: 70px 24px; }
+
+      /* Work grid: single column */
+      .works-grid { grid-template-columns: 1fr; }
+
+      /* Services: simpler layout */
+      .svc-item { grid-template-columns: 60px 1fr; gap: 20px; }
+      .svc-desc, .svc-arrow { display: none; }
+
+      /* About: single column */
+      #about { grid-template-columns: 1fr; gap: 48px; }
+      .about-badge { width: 90px; height: 90px; bottom: -12px; right: -12px; }
+      .badge-num { font-size: 32px; }
+
+      /* Contact: single column */
+      .contact-inner { grid-template-columns: 1fr; gap: 48px; }
+
+      /* Testimonials: one card at a time */
+      .testi-card { flex: 0 0 100%; }
+
+      /* Footer: stacked */
+      footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px; }
+
+      /* Disable custom cursor on mobile */
+      body { cursor: auto; }
+      #cur, #cur-ring { display: none; }
+      .section-wipe { clip-path: none !important; opacity: 1 !important; transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── SCROLL PROGRESS BAR ─────────────────────── -->
+<div id="scroll-bar"></div>
+
+<!-- ─── VIDEO LIGHTBOX (YouTube embed popup) ────── -->
+<div id="vid-lightbox">
+  <div class="vid-wrap">
+    <button class="vid-close" id="vidClose" aria-label="Close video">✕</button>
+    <iframe id="vidFrame" src="" allowfullscreen allow="autoplay"></iframe>
+  </div>
+</div>
+
+<!-- ─── PAGE LOADER ──────────────────────────────── -->
+<div id="loader">
+  <div class="ld-scan"></div>
+  <div class="ld-corner tl"></div>
+  <div class="ld-corner tr"></div>
+  <div class="ld-corner bl"></div>
+  <div class="ld-corner br"></div>
+  <div class="ld-logo">REZWAN<span>.</span>AHAMED</div>
+  <div class="ld-tagline">Motion &amp; Video</div>
+  <div class="ld-bar-wrap">
+    <div class="ld-bar-track"><div class="ld-bar-fill" id="ldFill"></div></div>
+    <div class="ld-bar-pct" id="ldPct">0%</div>
+  </div>
+</div>
+
+<!-- ─── CUSTOM CURSOR (desktop) ─────────────────── -->
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
+<!-- ─── MOBILE MENU OVERLAY ──────────────────────── -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#work"      onclick="closeMobileMenu()">Work</a>
+  <a href="#services"  onclick="closeMobileMenu()">Services</a>
+  <a href="#about"     onclick="closeMobileMenu()">About</a>
+  <a href="#contact"   onclick="closeMobileMenu()">Hire Me</a>
+</div>
+
+<!-- ─── NAVIGATION ───────────────────────────────── -->
+<nav id="nav">
+  <a href="#hero" class="nav-logo">REZWAN<span>.</span>AHAMED</a>
+  <ul class="nav-links">
+    <li><a href="#work">Work</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Hire Me</a>
+  <!-- Hamburger button (visible on mobile) -->
+  <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════
+     HERO SECTION
+═══════════════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-line"></div>
+  <div class="hero-orb" id="heroOrb"></div>
+
+  <!-- Left: Text content -->
+  <div class="hero-left">
+    <div class="hero-tag">Available for projects</div>
+    <h1 class="hero-title">
+      MOTION<br>
+      <span class="line2">THAT</span><br>
+      <span class="accent">HITS.</span>
+    </h1>
+    <p class="hero-desc">
+      Video editing &amp; motion design that grabs attention,
+      tells your story, and makes clients remember your brand.
+    </p>
+    <div class="hero-btns">
+      <a href="#work" class="btn-main">View My Work ↓</a>
+      <a href="#contact" class="btn-ghost">Let's Talk →</a>
+    </div>
+  </div>
+
+  <!-- Right: Your photo + play button (opens showreel) -->
+  <div class="hero-right">
+    <!-- Change data-vid to your YouTube video ID -->
+    <div class="hero-reel" id="heroReel" data-vid="6In4U9Wb29U">
+      <!-- Corner brackets -->
+      <div class="reel-corner tl"></div>
+      <div class="reel-corner tr"></div>
+      <div class="reel-corner bl"></div>
+      <div class="reel-corner br"></div>
+      <!-- Your actual photo -->
+      <img src="assets/my_pic.jpg" alt="Rezwan Ahamed — Video Editor" class="hero-photo">
+      <!-- Play overlay (click opens YouTube showreel) -->
+      <div class="reel-overlay">
+        <div class="reel-play-btn">▶</div>
+        <div class="reel-label">Watch Showreel 2025</div>
+      </div>
+    </div>
+
+    <!-- Animated stats counters -->
+    <div class="hero-stats">
+      <div class="hstat" data-target="128" data-suffix="+">
+        <div class="hstat-num">0+</div>
+        <div class="hstat-label">Projects</div>
+      </div>
+      <div class="hstat" data-target="18" data-suffix="+">
+        <div class="hstat-num">0+</div>
+        <div class="hstat-label">Clients</div>
+      </div>
+      <div class="hstat" data-target="3" data-suffix="+">
+        <div class="hstat-num">0+</div>
+        <div class="hstat-label">Years Exp.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SKILLS TICKER ─────────────────────────────── -->
+<div class="ticker">
+  <div class="ticker-track">
+    <!-- Duplicated for seamless loop -->
+    <div class="ticker-item">Video Editing <span>◆</span></div>
+    <div class="ticker-item">Motion Graphics <span>◆</span></div>
+    <div class="ticker-item">Color Grading <span>◆</span></div>
+    <div class="ticker-item">Visual Effects <span>◆</span></div>
+    <div class="ticker-item">Brand Films <span>◆</span></div>
+    <div class="ticker-item">Reels &amp; Shorts <span>◆</span></div>
+    <div class="ticker-item">Video Editing <span>◆</span></div>
+    <div class="ticker-item">Motion Graphics <span>◆</span></div>
+    <div class="ticker-item">Color Grading <span>◆</span></div>
+    <div class="ticker-item">Visual Effects <span>◆</span></div>
+    <div class="ticker-item">Brand Films <span>◆</span></div>
+    <div class="ticker-item">Reels &amp; Shorts <span>◆</span></div>
+  </div>
+</div>
+
+<div class="section-rule reveal"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     PORTFOLIO / WORK
+═══════════════════════════════════════════════════ -->
+<section id="work" class="section-wipe">
+  <div class="section-header reveal">
+    <div>
+      <p class="section-eyebrow">Portfolio</p>
+      <h2 class="section-title">SELECTED<br>WORK</h2>
+    </div>
+    <!-- Change this link to your YouTube channel -->
+    <a href="https://www.youtube.com/@RezwanAhamed" target="_blank" rel="noopener" class="section-link">All Projects →</a>
+  </div>
+
+  <div class="works-grid">
+    <!-- Each work-item: change data-vid to your YouTube video ID -->
+    <!-- YouTube thumbnail is auto-fetched from img.youtube.com -->
+
+    <div class="work-item reveal" data-vid="6In4U9Wb29U">
+      <div class="work-thumb">
+        <img src="https://img.youtube.com/vi/6In4U9Wb29U/maxresdefault.jpg" alt="Showreel 2025" loading="lazy">
+        <div class="work-overlay"><div class="work-play">▶</div></div>
+      </div>
+      <div class="work-info">
+        <div class="work-title">Showreel 2025</div>
+        <div class="work-meta"><span class="work-tag">Motion Graphics</span><span class="work-year">2025</span></div>
+      </div>
+    </div>
+
+    <div class="work-item reveal reveal-d1" data-vid="h_lELxynAhY">
+      <div class="work-thumb">
+        <img src="https://img.youtube.com/vi/h_lELxynAhY/maxresdefault.jpg" alt="Project Two" loading="lazy">
+        <div class="work-overlay"><div class="work-play">▶</div></div>
+      </div>
+      <div class="work-info">
+        <div class="work-title">Brand Film — NovaCo</div>
+        <div class="work-meta"><span class="work-tag">Brand Film</span><span class="work-year">2025</span></div>
+      </div>
+    </div>
+
+    <div class="work-item reveal reveal-d2" data-vid="aSte18D2_YE">
+      <div class="work-thumb">
+        <img src="https://img.youtube.com/vi/aSte18D2_YE/maxresdefault.jpg" alt="Project Three" loading="lazy">
+        <div class="work-overlay"><div class="work-play">▶</div></div>
+      </div>
+      <div class="work-info">
+        <div class="work-title">Cinematic Edit — Travel</div>
+        <div class="work-meta"><span class="work-tag">Video Edit</span><span class="work-year">2024</span></div>
+      </div>
+    </div>
+
+    <div class="work-item reveal reveal-d3" data-vid="u302hpxNDFs">
+      <div class="work-thumb">
+        <img src="https://img.youtube.com/vi/u302hpxNDFs/maxresdefault.jpg" alt="Project Four" loading="lazy">
+        <div class="work-overlay"><div class="work-play">▶</div></div>
+      </div>
+      <div class="work-info">
+        <div class="work-title">Instagram Reels Pack</div>
+        <div class="work-meta"><span class="work-tag">Social Content</span><span class="work-year">2024</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:48px;" class="reveal">
+    <a href="https://www.youtube.com/@RezwanAhamed" target="_blank" rel="noopener" class="btn-main" style="display:inline-block;">
+      View All 30+ Videos on YouTube ↗
+    </a>
+  </div>
+</section>
+
+<div class="section-rule reveal"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     TESTIMONIALS
+═══════════════════════════════════════════════════ -->
+<section id="testimonials" class="section-wipe">
+  <div class="testi-header reveal">
+    <div>
+      <p class="section-eyebrow">Kind Words</p>
+      <h2 class="section-title">CLIENT<br>REVIEWS</h2>
+    </div>
+  </div>
+
+  <div class="testi-track-wrap reveal">
+    <div class="testi-track" id="testiTrack">
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-quote-mark">"</div>
+        <p class="testi-text">Working with this editor completely transformed our brand presence. The reels he made for us tripled our engagement in under a month. Absolutely knows his craft.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">AK</div>
+          <div><div class="testi-name">Ahmed Khan</div><div class="testi-role">CEO, BrandVault Agency</div></div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-quote-mark">"</div>
+        <p class="testi-text">Delivered way beyond what we expected. The color grading on our product launch video was cinematic — our clients kept asking who edited it. 100% recommend.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">SR</div>
+          <div><div class="testi-name">Sara Rahman</div><div class="testi-role">Marketing Director, NovaCo</div></div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-quote-mark">"</div>
+        <p class="testi-text">Fast turnaround, great communication, and the final edit was fire. He understood our vibe immediately and brought ideas we hadn't even thought of. Will work again.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">JM</div>
+          <div><div class="testi-name">James Miller</div><div class="testi-role">Content Creator, 450K followers</div></div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-quote-mark">"</div>
+        <p class="testi-text">Our YouTube channel grew from 2K to 28K subscribers after we hired him for consistent video editing. The quality and consistency is unmatched at this price point.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">TP</div>
+          <div><div class="testi-name">Tania Patel</div><div class="testi-role">Founder, GrowthMinds</div></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="testi-controls">
+      <button class="testi-btn" id="testiBtnPrev" aria-label="Previous">←</button>
+      <button class="testi-btn" id="testiBtnNext" aria-label="Next">→</button>
+      <div class="testi-dots" id="testiDots"></div>
+    </div>
+  </div>
+</section>
+
+<div class="section-rule reveal"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     SERVICES
+═══════════════════════════════════════════════════ -->
+<section id="services" class="section-wipe">
+  <div class="section-header reveal">
+    <div>
+      <p class="section-eyebrow">What I Do</p>
+      <h2 class="section-title">SERVICES</h2>
+    </div>
+  </div>
+
+  <div>
+    <div class="svc-item reveal">
+      <div class="svc-num">01</div>
+      <div class="svc-name">Video Editing</div>
+      <div class="svc-desc">Brand films, commercials, YouTube, reels — edited to keep viewers watching till the end.</div>
+      <div class="svc-arrow">→</div>
+    </div>
+    <div class="svc-item reveal">
+      <div class="svc-num">02</div>
+      <div class="svc-name">Motion Graphics</div>
+      <div class="svc-desc">Animated titles, logos, transitions, and full motion design that brings brands to life.</div>
+      <div class="svc-arrow">→</div>
+    </div>
+    <div class="svc-item reveal">
+      <div class="svc-num">03</div>
+      <div class="svc-name">Color Grading</div>
+      <div class="svc-desc">Cinematic color treatment that sets the mood and makes every frame feel intentional.</div>
+      <div class="svc-arrow">→</div>
+    </div>
+    <div class="svc-item reveal">
+      <div class="svc-num">04</div>
+      <div class="svc-name">Social Media Content</div>
+      <div class="svc-desc">Short-form video for Instagram, TikTok, YouTube Shorts — built to perform.</div>
+      <div class="svc-arrow">→</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-rule reveal"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     ABOUT
+═══════════════════════════════════════════════════ -->
+<section id="about" class="section-wipe">
+  <!-- Left: Photo -->
+  <div class="about-visual reveal" id="aboutVisual">
+    <div class="about-photo">
+      <img src="assets/my_pic.jpg" alt="Rezwan Ahamed">
+    </div>
+    <div class="about-badge">
+      <div class="badge-num">3+</div>
+      <div class="badge-label">Years of<br>Experience</div>
+    </div>
+  </div>
+
+  <!-- Right: Bio text -->
+  <div>
+    <p class="section-eyebrow reveal">About Me</p>
+    <h2 class="about-title reveal">I MAKE <em>VIDEOS</em><br>THAT WORK.</h2>
+    <p class="about-text reveal">
+      I'm a video editor and motion designer passionate about creating content that doesn't
+      just look good — it feels right and drives results. Based in Bangladesh, working
+      with clients worldwide.
+    </p>
+    <p class="about-text reveal">
+      Every cut, every motion, every color choice is intentional. I care about the craft
+      as much as you care about your brand.
+    </p>
+    <div class="reveal">
+      <div class="tools-label">Tools I Use</div>
+      <div class="tools-list">
+        <div class="tool-tag">Premiere Pro</div>
+        <div class="tool-tag">After Effects</div>
+        <div class="tool-tag">DaVinci Resolve</div>
+        <div class="tool-tag">Illustrator</div>
+        <div class="tool-tag">Photoshop</div>
+        <div class="tool-tag">Cinema 4D</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     CONTACT
+═══════════════════════════════════════════════════ -->
+<section id="contact" class="section-wipe">
+  <div class="contact-bg-text">HIRE<br>ME</div>
+
+  <div class="contact-inner">
+    <!-- Left: Info + socials -->
+    <div>
+      <p class="section-eyebrow reveal">Contact</p>
+      <h2 class="contact-title reveal">LET'S<br>BUILD<br><em>TOGETHER.</em></h2>
+      <p class="contact-sub reveal">Have a project? I'd love to hear about it. I respond within 24 hours.</p>
+
+      <div class="contact-socials reveal">
+        <!-- Update your email here -->
+        <a href="mailto:rezwan.ahamed257@gmail.com" class="c-social">
+          rezwan.ahamed257@gmail.com <span>✉</span>
+        </a>
+        <a href="https://www.instagram.com/rezwan.ahamed257/" target="_blank" rel="noopener" class="c-social">Instagram <span>↗</span></a>
+        <a href="https://x.com/RezwanAham5561" target="_blank" rel="noopener" class="c-social">X (Twitter) <span>↗</span></a>
+        <a href="https://www.threads.com/@rezwan.ahamed257" target="_blank" rel="noopener" class="c-social">Threads <span>↗</span></a>
+        <a href="https://wa.me/8801912243902" target="_blank" rel="noopener" class="c-social">WhatsApp <span>↗</span></a>
+      </div>
+    </div>
+
+    <!-- Right: Contact form (powered by EmailJS) -->
+    <div class="contact-form reveal">
+      <div class="f-group">
+        <label class="f-label" for="name">Your Name</label>
+        <input type="text" id="name" class="f-input" placeholder="John Doe" required>
+      </div>
+      <div class="f-group">
+        <label class="f-label" for="email">Email Address</label>
+        <input type="email" id="email" class="f-input" placeholder="john@email.com" required>
+      </div>
+      <div class="f-group">
+        <label class="f-label" for="message">Project Details</label>
+        <textarea id="message" class="f-textarea" placeholder="Tell me about your project..." required></textarea>
+      </div>
+      <!-- Status messages shown after submit -->
+      <div class="form-status" id="formStatus"></div>
+      <button class="f-submit" id="submitBtn" type="button" onclick="sendEmail()">
+        Send Message →
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════ -->
+<footer>
+  <div class="foot-logo">REZWAN.AHAMED</div>
+  <div class="foot-copy">© 2025 Rezwan Ahamed — All rights reserved</div>
+  <a href="#hero" class="foot-top">Back to top ↑</a>
+</footer>
+
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════ -->
+<script>
+
+/* ════════════════════════════════════════
+   1. EMAIL JS SETUP
+   ════════════════════════════════════════
+   Steps to set this up:
+   1. Go to https://www.emailjs.com/ and create a free account
+   2. Create an Email Service (e.g., Gmail)
+   3. Create an Email Template with these variables:
+      {{from_name}}, {{from_email}}, {{message}}
+   4. Replace the values below with your own IDs
+*/
+emailjs.init("sqviHBnfl1Sc2mmoN"); // ← Replace with your EmailJS Public Key
+
+const EMAILJS_SERVICE_ID  = "service_7r9b1ch";  // ← Replace with your Service ID
+const EMAILJS_TEMPLATE_ID = "template_9tkj48c"; // ← Replace with your Template ID
+
+function sendEmail() {
+  const name    = document.getElementById('name').value.trim();
+  const email   = document.getElementById('email').value.trim();
+  const message = document.getElementById('message').value.trim();
+  const status  = document.getElementById('formStatus');
+  const btn     = document.getElementById('submitBtn');
+
+  // Basic validation
+  if (!name || !email || !message) {
+    status.textContent = "Please fill in all fields.";
+    status.className = "form-status error";
+    return;
+  }
+
+  // Disable button while sending
+  btn.disabled = true;
+  btn.textContent = "Sending...";
+  status.className = "form-status";
+
+  // Send via EmailJS
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    from_name:  name,
+    from_email: email,
+    message:    message,
+    to_name:    "Rezwan Ahamed"  // Your name (appears in email template)
+  })
+  .then(() => {
+    status.textContent = "✓ Message sent! I'll get back to you within 24 hours.";
+    status.className = "form-status success";
+    // Clear form
+    document.getElementById('name').value    = '';
+    document.getElementById('email').value   = '';
+    document.getElementById('message').value = '';
+    btn.textContent = "Send Message →";
+    btn.disabled = false;
+  })
+  .catch((err) => {
+    console.error("EmailJS error:", err);
+    status.textContent = "Failed to send. Please email me directly: rezwan.ahamed257@gmail.com";
+    status.className = "form-status error";
+    btn.textContent = "Send Message →";
+    btn.disabled = false;
+  });
+}
+
+
+/* ════════════════════════════════════════
+   2. PAGE LOADER
+   ════════════════════════════════════════ */
+(function () {
+  function startLoader() {
+    const loader = document.getElementById('loader');
+    const fill   = document.getElementById('ldFill');
+    const pct    = document.getElementById('ldPct');
+    if (!loader || !fill || !pct) return;
+
+    document.body.classList.add('loading');
+    const dur = 2200, t0 = performance.now();
+
+    function dismiss() {
+      loader.classList.add('hide');
+      document.body.classList.remove('loading');
+      setTimeout(() => { if (loader.parentNode) loader.parentNode.removeChild(loader); }, 950);
+    }
+    function tick(now) {
+      const p = Math.min(100, Math.round((1 - Math.pow(1 - (now - t0) / dur, 3)) * 100));
+      fill.style.width = p + '%';
+      pct.textContent  = p + '%';
+      p < 100 ? requestAnimationFrame(tick) : setTimeout(dismiss, 300);
+    }
+    setTimeout(dismiss, 4000); // failsafe
+    requestAnimationFrame(tick);
+  }
+  document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', startLoader)
+    : startLoader();
+})();
+
+
+/* ════════════════════════════════════════
+   3. CUSTOM CURSOR
+   ════════════════════════════════════════ */
+const cur  = document.getElementById('cur');
+const ring = document.getElementById('cur-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cur.style.left = mx + 'px';
+  cur.style.top  = my + 'px';
+});
+// Ring follows with lag
+(function animRing() {
+  rx += (mx - rx) * .1;
+  ry += (my - ry) * .1;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animRing);
+})();
+// Hover effect on interactive elements
+document.querySelectorAll('a, button, .work-item, .svc-item, .tool-tag, .c-social').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+});
+
+
+/* ════════════════════════════════════════
+   4. HAMBURGER / MOBILE MENU
+   ════════════════════════════════════════ */
+const hamburger  = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+
+hamburger.addEventListener('click', () => {
+  const isOpen = mobileMenu.classList.toggle('open');
+  hamburger.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+});
+
+function closeMobileMenu() {
+  mobileMenu.classList.remove('open');
+  hamburger.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+
+/* ════════════════════════════════════════
+   5. SCROLL EFFECTS (progress bar, nav, parallax)
+   ════════════════════════════════════════ */
+const scrollBar   = document.getElementById('scroll-bar');
+const heroReel    = document.getElementById('heroReel');
+const heroOrb     = document.getElementById('heroOrb');
+const aboutVisual = document.getElementById('aboutVisual');
+
+function onScroll() {
+  // Scroll progress bar
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  scrollBar.style.width = Math.round(scrollY / max * 100) + '%';
+
+  // Nav background on scroll
+  document.getElementById('nav').classList.toggle('scrolled', scrollY > 60);
+
+  // Parallax effects
+  const sy = scrollY;
+  if (heroReel) heroReel.style.transform = `translateY(${sy * 0.1}px)`;
+  if (heroOrb)  heroOrb.style.transform  = `translate(-50%, calc(-50% + ${sy * 0.18}px))`;
+  if (aboutVisual) {
+    const rect = aboutVisual.getBoundingClientRect();
+    const mid  = rect.top + rect.height / 2 - window.innerHeight / 2;
+    aboutVisual.style.transform = `translateY(${mid * -0.08}px)`;
+  }
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+
+// Orb follows mouse in hero
+document.addEventListener('mousemove', e => {
+  if (!heroOrb || scrollY > window.innerHeight) return;
+  const cx = window.innerWidth  / 2;
+  const cy = window.innerHeight / 2;
+  const dx = (e.clientX - cx) / cx;
+  const dy = (e.clientY - cy) / cy;
+  heroOrb.style.transform = `translate(calc(-50% + ${dx * 28}px), calc(-50% + ${dy * 18}px + ${scrollY * 0.18}px))`;
+});
+
+
+/* ════════════════════════════════════════
+   6. SCROLL REVEAL ANIMATIONS
+   ════════════════════════════════════════ */
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      revObs.unobserve(e.target);
+    }
+  });
+}, { threshold: .1 });
+document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+
+const wipeObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('wipe-in'); wipeObs.unobserve(e.target); }
+  });
+}, { threshold: .06 });
+document.querySelectorAll('.section-wipe').forEach(el => wipeObs.observe(el));
+
+
+/* ════════════════════════════════════════
+   7. ANIMATED STATS COUNTERS
+   ════════════════════════════════════════ */
+function easeOutQuart(t) { return 1 - (--t) * t * t * t; }
+
+function animateCounter(el) {
+  const numEl  = el.querySelector('.hstat-num');
+  const target = parseInt(el.dataset.target, 10);
+  const suffix = el.dataset.suffix || '';
+  const dur = 1800, t0 = performance.now();
+  numEl.classList.add('active');
+  (function step(now) {
+    const p   = Math.min((now - t0) / dur, 1);
+    const cur = Math.round(easeOutQuart(p) * target);
+    numEl.textContent = cur + suffix;
+    p < 1 ? requestAnimationFrame(step) : (numEl.textContent = target + suffix, numEl.classList.remove('active'));
+  })(performance.now());
+}
+const statObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { animateCounter(e.target); statObs.unobserve(e.target); }
+  });
+}, { threshold: .5 });
+document.querySelectorAll('.hstat[data-target]').forEach(el => statObs.observe(el));
+
+
+/* ════════════════════════════════════════
+   8. TESTIMONIALS SLIDER
+   ════════════════════════════════════════ */
+(function () {
+  const track   = document.getElementById('testiTrack');
+  const cards   = track.querySelectorAll('.testi-card');
+  const dotsWrap = document.getElementById('testiDots');
+  const btnPrev = document.getElementById('testiBtnPrev');
+  const btnNext = document.getElementById('testiBtnNext');
+
+  function perView() { return window.innerWidth <= 900 ? 1 : 2; }
+  const total = cards.length;
+  let current = 0, pv = perView();
+  const maxIndex = () => total - pv;
+
+  function buildDots() {
+    pv = perView(); dotsWrap.innerHTML = '';
+    for (let i = 0; i <= maxIndex(); i++) {
+      const d = document.createElement('div');
+      d.className = 'testi-dot' + (i === current ? ' active' : '');
+      d.addEventListener('click', () => goTo(i));
+      dotsWrap.appendChild(d);
+    }
+  }
+  function goTo(idx) {
+    current = Math.max(0, Math.min(idx, maxIndex()));
+    track.style.transform = `translateX(-${current * (cards[0].offsetWidth + 24)}px)`;
+    dotsWrap.querySelectorAll('.testi-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  btnPrev.addEventListener('click', () => goTo(current - 1));
+  btnNext.addEventListener('click', () => goTo(current + 1));
+
+  let ap = setInterval(() => goTo(current < maxIndex() ? current + 1 : 0), 4000);
+  track.addEventListener('mouseenter', () => clearInterval(ap));
+  track.addEventListener('mouseleave', () => { ap = setInterval(() => goTo(current < maxIndex() ? current + 1 : 0), 4000); });
+
+  window.addEventListener('resize', () => { buildDots(); goTo(0); });
+  buildDots();
+})();
+
+
+/* ════════════════════════════════════════
+   9. VIDEO LIGHTBOX
+   ════════════════════════════════════════ */
+(function () {
+  const lightbox = document.getElementById('vid-lightbox');
+  const frame    = document.getElementById('vidFrame');
+  const closeBtn = document.getElementById('vidClose');
+
+  function openVideo(id) {
+    frame.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeVideo() {
+    lightbox.classList.remove('open');
+    frame.src = '';
+    document.body.style.overflow = '';
+  }
+
+  // Hero reel click
+  const heroReelEl = document.getElementById('heroReel');
+  if (heroReelEl) heroReelEl.addEventListener('click', () => openVideo(heroReelEl.dataset.vid));
+
+  // Portfolio items click
+  document.querySelectorAll('.work-item[data-vid]').forEach(item => {
+    item.addEventListener('click', () => openVideo(item.dataset.vid));
+  });
+
+  closeBtn.addEventListener('click', closeVideo);
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeVideo(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVideo(); });
+})();
+
+
+/* ════════════════════════════════════════
+   10. SMOOTH ANCHOR SCROLL
+   ════════════════════════════════════════ */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', function (e) {
+    const t = document.querySelector(this.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+
+</script>
+</body>
+</html>
