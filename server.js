@@ -23,6 +23,17 @@ const cors     = require('cors');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+/* ─── ENVIRONMENT VARIABLE VALIDATION ────────────── */
+const REQUIRED_ENV = ['EMAIL_USER', 'EMAIL_PASS'];
+const missingVars = REQUIRED_ENV.filter(key => !process.env[key]);
+if (missingVars.length > 0) {
+  console.error(
+    `[FATAL] Missing required environment variables: ${missingVars.join(', ')}\n` +
+    'Copy .env.example to .env and fill in your values.'
+  );
+  process.exit(1);
+}
+
 /* ─── MIDDLEWARE ────────────────────────────────── */
 
 // Allow requests from your frontend domain
@@ -32,8 +43,8 @@ app.use(cors({
   methods: ['GET', 'POST']
 }));
 
-// Parse incoming JSON request bodies
-app.use(express.json());
+// Parse incoming JSON request bodies with a size limit to prevent abuse
+app.use(express.json({ limit: '100kb' }));
 
 /* ─── NODEMAILER TRANSPORTER ────────────────────── */
 // This creates the email "sender" using Gmail
@@ -47,6 +58,16 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS  // your Gmail App Password
   }
 });
+
+// Verify transporter connection at startup
+transporter.verify()
+  .then(() => console.log('[OK] Email transporter verified — SMTP credentials are valid.'))
+  .catch(err => {
+    console.error(
+      '[WARN] Email transporter verification failed:', err.message,
+      '\nEmails will likely fail to send. Check EMAIL_USER and EMAIL_PASS in your .env file.'
+    );
+  });
 
 /* ─── HEALTH CHECK ENDPOINT ─────────────────────── */
 // Visit: https://your-backend-url.com/
@@ -135,11 +156,25 @@ app.post('/api/contact', async (req, res) => {
       `
     };
 
-    // Send both emails at the same time
-    await Promise.all([
+    // Send both emails independently so a failure in one doesn't block the other
+    const [notificationResult, autoReplyResult] = await Promise.allSettled([
       transporter.sendMail(mailToYou),
       transporter.sendMail(mailToVisitor)
     ]);
+
+    // The notification email to you is critical; if it fails, report an error
+    if (notificationResult.status === 'rejected') {
+      console.error('[ERROR] Failed to send notification email:', notificationResult.reason.message);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to deliver your message. Please try again later.'
+      });
+    }
+
+    // Auto-reply failure is non-critical — log it but still report success to the visitor
+    if (autoReplyResult.status === 'rejected') {
+      console.error('[WARN] Auto-reply email failed:', autoReplyResult.reason.message);
+    }
 
     // Success response
     res.json({
@@ -148,17 +183,46 @@ app.post('/api/contact', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Email sending failed:', error.message);
+    console.error('[ERROR] Unexpected failure in /api/contact:', error.message);
     res.status(500).json({
       success: false,
-      error: 'Failed to send email. Please try again later.'
+      error: 'An unexpected error occurred. Please try again later.'
     });
   }
 });
 
+/* ─── GLOBAL ERROR HANDLING MIDDLEWARE ───────────── */
+// Catches unhandled errors thrown in route handlers
+app.use((err, req, res, _next) => {
+  console.error('[ERROR] Unhandled route error:', err.message);
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error.'
+  });
+});
+
 /* ─── START SERVER ───────────────────────────────── */
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n🚀 Server running on port ${PORT}`);
   console.log(`   Local: http://localhost:${PORT}`);
   console.log(`   Health check: http://localhost:${PORT}/\n`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[FATAL] Port ${PORT} is already in use. Choose a different port or stop the other process.`);
+  } else {
+    console.error('[FATAL] Server failed to start:', err.message);
+  }
+  process.exit(1);
+});
+
+/* ─── PROCESS-LEVEL ERROR HANDLERS ──────────────── */
+process.on('unhandledRejection', (reason) => {
+  console.error('[ERROR] Unhandled promise rejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught exception:', err.message);
+  process.exit(1);
 });
