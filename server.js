@@ -16,24 +16,29 @@
 // Load environment variables from .env file
 require('dotenv').config();
 
-const express  = require('express');
+const express    = require('express');
 const nodemailer = require('nodemailer');
-const cors     = require('cors');
+const cors       = require('cors');
+const helmet     = require('helmet');
+const rateLimit  = require('express-rate-limit');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
 /* ─── MIDDLEWARE ────────────────────────────────── */
 
+// Security headers
+app.use(helmet());
+
 // Allow requests from your frontend domain
-// In production: replace '*' with your actual frontend URL
+// FRONTEND_URL must be set in production — no wildcard fallback
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: process.env.FRONTEND_URL || false,
   methods: ['GET', 'POST']
 }));
 
-// Parse incoming JSON request bodies
-app.use(express.json());
+// Parse incoming JSON request bodies (with size limit)
+app.use(express.json({ limit: '16kb' }));
 
 /* ─── NODEMAILER TRANSPORTER ────────────────────── */
 // This creates the email "sender" using Gmail
@@ -58,10 +63,19 @@ app.get('/', (req, res) => {
   });
 });
 
+/* ─── RATE LIMITER ──────────────────────────────── */
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,                    // 5 requests per window per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many requests. Please try again later.' }
+});
+
 /* ─── CONTACT FORM ENDPOINT ─────────────────────── */
 // Your frontend sends a POST request to /api/contact
 // with JSON body: { name, email, message }
-app.post('/api/contact', async (req, res) => {
+app.post('/api/contact', contactLimiter, async (req, res) => {
 
   // Extract fields from request body
   const { name, email, message } = req.body;
@@ -74,6 +88,17 @@ app.post('/api/contact', async (req, res) => {
     });
   }
 
+  // Input length limits
+  if (name.length > 100) {
+    return res.status(400).json({ success: false, error: 'Name is too long (max 100 characters).' });
+  }
+  if (email.length > 254) {
+    return res.status(400).json({ success: false, error: 'Email is too long.' });
+  }
+  if (message.length > 5000) {
+    return res.status(400).json({ success: false, error: 'Message is too long (max 5000 characters).' });
+  }
+
   // Basic email format check
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
@@ -83,12 +108,26 @@ app.post('/api/contact', async (req, res) => {
     });
   }
 
+  // Sanitize user input for safe HTML embedding
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  const safeName    = escapeHtml(name);
+  const safeEmail   = escapeHtml(email);
+  const safeMessage = escapeHtml(message);
+
   try {
     // Email that goes to YOUR inbox
     const mailToYou = {
       from:    `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
       to:      process.env.EMAIL_TO || process.env.EMAIL_USER, // your inbox
-      subject: `New Project Inquiry from ${name}`,
+      subject: `New Project Inquiry from ${safeName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #ff4d00; border-bottom: 2px solid #ff4d00; padding-bottom: 10px;">
@@ -97,17 +136,17 @@ app.post('/api/contact', async (req, res) => {
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="padding: 12px; background: #f5f5f5; font-weight: bold; width: 120px;">Name</td>
-              <td style="padding: 12px; border-bottom: 1px solid #eee;">${name}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #eee;">${safeName}</td>
             </tr>
             <tr>
               <td style="padding: 12px; background: #f5f5f5; font-weight: bold;">Email</td>
               <td style="padding: 12px; border-bottom: 1px solid #eee;">
-                <a href="mailto:${email}">${email}</a>
+                <a href="mailto:${safeEmail}">${safeEmail}</a>
               </td>
             </tr>
             <tr>
               <td style="padding: 12px; background: #f5f5f5; font-weight: bold;">Message</td>
-              <td style="padding: 12px;">${message.replace(/\n/g, '<br>')}</td>
+              <td style="padding: 12px;">${safeMessage.replace(/\n/g, '<br>')}</td>
             </tr>
           </table>
           <p style="color: #888; font-size: 12px; margin-top: 20px;">
@@ -124,11 +163,11 @@ app.post('/api/contact', async (req, res) => {
       subject: 'Got your message! I\'ll be in touch soon.',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #ff4d00;">Hey ${name},</h2>
+          <h2 style="color: #ff4d00;">Hey ${safeName},</h2>
           <p>Thanks for reaching out! I've received your message and will get back to you within 24 hours.</p>
           <p style="color: #888;">Here's what you sent:</p>
           <blockquote style="border-left: 3px solid #ff4d00; padding-left: 16px; color: #666;">
-            ${message.replace(/\n/g, '<br>')}
+            ${safeMessage.replace(/\n/g, '<br>')}
           </blockquote>
           <p>Talk soon,<br><strong>Rezwan Ahamed</strong><br>Video Editor & Motion Designer</p>
         </div>
