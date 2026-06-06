@@ -194,10 +194,11 @@ app.post('/api/contact', async (req, res) => {
 /* ─── GLOBAL ERROR HANDLING MIDDLEWARE ───────────── */
 // Catches unhandled errors thrown in route handlers
 app.use((err, req, res, _next) => {
-  console.error('[ERROR] Unhandled route error:', err.message);
-  res.status(500).json({
+  const statusCode = err.status || err.statusCode || 500;
+  console.error(`[ERROR] Unhandled route error (${statusCode}):`, err.message);
+  res.status(statusCode).json({
     success: false,
-    error: 'Internal server error.'
+    error: statusCode >= 500 ? 'Internal server error.' : err.message
   });
 });
 
