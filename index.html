@@ -933,7 +933,11 @@
       {{from_name}}, {{from_email}}, {{message}}
    4. Replace the values below with your own IDs
 */
-emailjs.init("sqviHBnfl1Sc2mmoN"); // ← Replace with your EmailJS Public Key
+if (typeof emailjs !== 'undefined') {
+  emailjs.init("sqviHBnfl1Sc2mmoN"); // ← Replace with your EmailJS Public Key
+} else {
+  console.error('[ERROR] EmailJS SDK failed to load. Contact form will not work.');
+}
 
 const EMAILJS_SERVICE_ID  = "service_7r9b1ch";  // ← Replace with your Service ID
 const EMAILJS_TEMPLATE_ID = "template_9tkj48c"; // ← Replace with your Template ID
@@ -945,9 +949,21 @@ function sendEmail() {
   const status  = document.getElementById('formStatus');
   const btn     = document.getElementById('submitBtn');
 
+  if (!status || !btn) {
+    console.error('[ERROR] Form status or submit button element not found.');
+    return;
+  }
+
   // Basic validation
   if (!name || !email || !message) {
     status.textContent = "Please fill in all fields.";
+    status.className = "form-status error";
+    return;
+  }
+
+  // Guard: EmailJS must be loaded
+  if (typeof emailjs === 'undefined' || typeof emailjs.send !== 'function') {
+    status.textContent = "Email service unavailable. Please email me directly: rezwan.ahamed257@gmail.com";
     status.className = "form-status error";
     return;
   }
@@ -975,7 +991,7 @@ function sendEmail() {
     btn.disabled = false;
   })
   .catch((err) => {
-    console.error("EmailJS error:", err);
+    console.error("[ERROR] EmailJS send failed:", err);
     status.textContent = "Failed to send. Please email me directly: rezwan.ahamed257@gmail.com";
     status.className = "form-status error";
     btn.textContent = "Send Message →";
@@ -1024,24 +1040,26 @@ const cur  = document.getElementById('cur');
 const ring = document.getElementById('cur-ring');
 let mx = 0, my = 0, rx = 0, ry = 0;
 
-document.addEventListener('mousemove', e => {
-  mx = e.clientX; my = e.clientY;
-  cur.style.left = mx + 'px';
-  cur.style.top  = my + 'px';
-});
-// Ring follows with lag
-(function animRing() {
-  rx += (mx - rx) * .1;
-  ry += (my - ry) * .1;
-  ring.style.left = rx + 'px';
-  ring.style.top  = ry + 'px';
-  requestAnimationFrame(animRing);
-})();
-// Hover effect on interactive elements
-document.querySelectorAll('a, button, .work-item, .svc-item, .tool-tag, .c-social').forEach(el => {
-  el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
-  el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
-});
+if (cur && ring) {
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cur.style.left = mx + 'px';
+    cur.style.top  = my + 'px';
+  });
+  // Ring follows with lag
+  (function animRing() {
+    rx += (mx - rx) * .1;
+    ry += (my - ry) * .1;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animRing);
+  })();
+  // Hover effect on interactive elements
+  document.querySelectorAll('a, button, .work-item, .svc-item, .tool-tag, .c-social').forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+  });
+}
 
 
 /* ════════════════════════════════════════
@@ -1050,13 +1068,16 @@ document.querySelectorAll('a, button, .work-item, .svc-item, .tool-tag, .c-socia
 const hamburger  = document.getElementById('hamburger');
 const mobileMenu = document.getElementById('mobileMenu');
 
-hamburger.addEventListener('click', () => {
-  const isOpen = mobileMenu.classList.toggle('open');
-  hamburger.classList.toggle('open', isOpen);
-  document.body.style.overflow = isOpen ? 'hidden' : '';
-});
+if (hamburger && mobileMenu) {
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('open', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  });
+}
 
 function closeMobileMenu() {
+  if (!mobileMenu || !hamburger) return;
   mobileMenu.classList.remove('open');
   hamburger.classList.remove('open');
   document.body.style.overflow = '';
@@ -1070,14 +1091,15 @@ const scrollBar   = document.getElementById('scroll-bar');
 const heroReel    = document.getElementById('heroReel');
 const heroOrb     = document.getElementById('heroOrb');
 const aboutVisual = document.getElementById('aboutVisual');
+const navEl       = document.getElementById('nav');
 
 function onScroll() {
   // Scroll progress bar
   const max = document.documentElement.scrollHeight - window.innerHeight;
-  scrollBar.style.width = Math.round(scrollY / max * 100) + '%';
+  if (scrollBar && max > 0) scrollBar.style.width = Math.round(scrollY / max * 100) + '%';
 
   // Nav background on scroll
-  document.getElementById('nav').classList.toggle('scrolled', scrollY > 60);
+  if (navEl) navEl.classList.toggle('scrolled', scrollY > 60);
 
   // Parallax effects
   const sy = scrollY;
@@ -1154,10 +1176,20 @@ document.querySelectorAll('.hstat[data-target]').forEach(el => statObs.observe(e
    ════════════════════════════════════════ */
 (function () {
   const track   = document.getElementById('testiTrack');
-  const cards   = track.querySelectorAll('.testi-card');
   const dotsWrap = document.getElementById('testiDots');
   const btnPrev = document.getElementById('testiBtnPrev');
   const btnNext = document.getElementById('testiBtnNext');
+
+  if (!track || !dotsWrap || !btnPrev || !btnNext) {
+    console.warn('[WARN] Testimonials slider: required DOM elements not found, skipping initialization.');
+    return;
+  }
+
+  const cards = track.querySelectorAll('.testi-card');
+  if (cards.length === 0) {
+    console.warn('[WARN] Testimonials slider: no cards found.');
+    return;
+  }
 
   function perView() { return window.innerWidth <= 900 ? 1 : 2; }
   const total = cards.length;
@@ -1199,7 +1231,16 @@ document.querySelectorAll('.hstat[data-target]').forEach(el => statObs.observe(e
   const frame    = document.getElementById('vidFrame');
   const closeBtn = document.getElementById('vidClose');
 
+  if (!lightbox || !frame || !closeBtn) {
+    console.warn('[WARN] Video lightbox: required DOM elements not found, skipping initialization.');
+    return;
+  }
+
   function openVideo(id) {
+    if (!id) {
+      console.error('[ERROR] openVideo called without a video ID.');
+      return;
+    }
     frame.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
