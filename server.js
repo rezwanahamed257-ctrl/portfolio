@@ -157,8 +157,12 @@ app.post('/api/contact', async (req, res) => {
 });
 
 /* ─── START SERVER ───────────────────────────────── */
-app.listen(PORT, () => {
-  console.log(`\n🚀 Server running on port ${PORT}`);
-  console.log(`   Local: http://localhost:${PORT}`);
-  console.log(`   Health check: http://localhost:${PORT}/\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Server running on port ${PORT}`);
+    console.log(`   Local: http://localhost:${PORT}`);
+    console.log(`   Health check: http://localhost:${PORT}/\n`);
+  });
+}
+
+module.exports = app;
