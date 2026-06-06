@@ -91,11 +91,17 @@
     .ld-bar-track { width: 100%; height: 1px; background: var(--border2); position: relative; overflow: hidden; }
     .ld-bar-fill  { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: var(--accent); transition: width .08s linear; }
     .ld-bar-pct   { font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: .1em; color: var(--muted); align-self: flex-end; }
-    .ld-corner    { position: absolute; width: 18px; height: 18px; border-color: rgba(255,77,0,.3); border-style: solid; }
-    .ld-corner.tl { top: 24px; left: 24px; border-width: 1px 0 0 1px; }
-    .ld-corner.tr { top: 24px; right: 24px; border-width: 1px 1px 0 0; }
-    .ld-corner.bl { bottom: 24px; left: 24px; border-width: 0 0 1px 1px; }
-    .ld-corner.br { bottom: 24px; right: 24px; border-width: 0 1px 1px 0; }
+    /* Shared corner-bracket utility (used by loader + hero reel) */
+    .corner-bracket { position: absolute; border-style: solid; }
+    .corner-bracket.tl { border-width: 1px 0 0 1px; }
+    .corner-bracket.tr { border-width: 1px 1px 0 0; }
+    .corner-bracket.bl { border-width: 0 0 1px 1px; }
+    .corner-bracket.br { border-width: 0 1px 1px 0; }
+    .ld-corner { width: 18px; height: 18px; border-color: rgba(255,77,0,.3); }
+    .ld-corner.tl { top: 24px; left: 24px; }
+    .ld-corner.tr { top: 24px; right: 24px; }
+    .ld-corner.bl { bottom: 24px; left: 24px; }
+    .ld-corner.br { bottom: 24px; right: 24px; }
     .ld-scan {
       position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
       background: linear-gradient(to right, transparent, rgba(255,77,0,.04), transparent);
@@ -215,13 +221,16 @@
       display: flex; gap: 16px; align-items: center; margin-top: 48px;
       opacity: 0; animation: fadeUp .8s .8s forwards;
     }
-    .btn-main {
+    /* Shared primary-button base (used by .btn-main and .f-submit) */
+    .btn-primary {
       padding: 14px 32px; background: var(--accent);
       font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
-      color: #000; text-decoration: none; font-weight: 500;
+      color: #000; font-weight: 500;
+      font-family: 'Space Grotesk', sans-serif;
       transition: background .3s, transform .25s;
     }
-    .btn-main:hover { background: var(--accent2); transform: translateY(-3px); }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-3px); }
+    .btn-main { text-decoration: none; }
     .btn-ghost {
       font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
       color: var(--muted2); text-decoration: none; transition: color .3s;
@@ -259,12 +268,12 @@
     }
     .hero-reel:hover .reel-play-btn { border-color: var(--accent); transform: scale(1.1); color: var(--accent); }
     .reel-label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.6); }
-    /* Corner brackets on reel */
-    .reel-corner { position: absolute; width: 20px; height: 20px; border-color: var(--accent); border-style: solid; z-index: 3; }
-    .reel-corner.tl { top: 12px; left: 12px; border-width: 1px 0 0 1px; }
-    .reel-corner.tr { top: 12px; right: 12px; border-width: 1px 1px 0 0; }
-    .reel-corner.bl { bottom: 12px; left: 12px; border-width: 0 0 1px 1px; }
-    .reel-corner.br { bottom: 12px; right: 12px; border-width: 0 1px 1px 0; }
+    /* Corner brackets on reel (extends .corner-bracket) */
+    .reel-corner { width: 20px; height: 20px; border-color: var(--accent); z-index: 3; }
+    .reel-corner.tl { top: 12px; left: 12px; }
+    .reel-corner.tr { top: 12px; right: 12px; }
+    .reel-corner.bl { bottom: 12px; left: 12px; }
+    .reel-corner.br { bottom: 12px; right: 12px; }
 
     /* Stats below reel */
     .hero-stats { display: flex; gap: 2px; margin-top: 2px; }
@@ -328,7 +337,7 @@
        TESTIMONIALS
     ═══════════════════════════════════════════════ */
     #testimonials { padding: 100px 48px; background: var(--bg); overflow: hidden; }
-    .testi-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 60px; }
+    /* .testi-header removed — reuses .section-header */
     .testi-track-wrap { position: relative; }
     .testi-track { display: flex; gap: 24px; transition: transform .6s cubic-bezier(.16,1,.3,1); }
     .testi-card { flex: 0 0 calc(50% - 12px); background: var(--bg2); border: 1px solid var(--border); padding: 40px; position: relative; transition: border-color .3s, transform .4s cubic-bezier(.16,1,.3,1); }
@@ -413,14 +422,7 @@
     }
     .f-input:focus, .f-textarea:focus { border-color: var(--accent); }
     .f-textarea { resize: none; height: 90px; }
-    .f-submit {
-      align-self: flex-start; padding: 14px 36px; background: var(--accent);
-      color: #000; font-family: 'Space Grotesk', sans-serif;
-      font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
-      font-weight: 500; border: none; cursor: pointer;
-      transition: background .3s, transform .25s;
-    }
-    .f-submit:hover { background: var(--accent2); transform: translateY(-3px); }
+    .f-submit { align-self: flex-start; padding: 14px 36px; border: none; cursor: pointer; }
     .f-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
     /* Form status messages */
@@ -519,10 +521,10 @@
 <!-- ─── PAGE LOADER ──────────────────────────────── -->
 <div id="loader">
   <div class="ld-scan"></div>
-  <div class="ld-corner tl"></div>
-  <div class="ld-corner tr"></div>
-  <div class="ld-corner bl"></div>
-  <div class="ld-corner br"></div>
+  <div class="corner-bracket ld-corner tl"></div>
+  <div class="corner-bracket ld-corner tr"></div>
+  <div class="corner-bracket ld-corner bl"></div>
+  <div class="corner-bracket ld-corner br"></div>
   <div class="ld-logo">REZWAN<span>.</span>AHAMED</div>
   <div class="ld-tagline">Motion &amp; Video</div>
   <div class="ld-bar-wrap">
@@ -578,7 +580,7 @@
       tells your story, and makes clients remember your brand.
     </p>
     <div class="hero-btns">
-      <a href="#work" class="btn-main">View My Work ↓</a>
+      <a href="#work" class="btn-primary btn-main">View My Work ↓</a>
       <a href="#contact" class="btn-ghost">Let's Talk →</a>
     </div>
   </div>
@@ -588,10 +590,10 @@
     <!-- Change data-vid to your YouTube video ID -->
     <div class="hero-reel" id="heroReel" data-vid="6In4U9Wb29U">
       <!-- Corner brackets -->
-      <div class="reel-corner tl"></div>
-      <div class="reel-corner tr"></div>
-      <div class="reel-corner bl"></div>
-      <div class="reel-corner br"></div>
+      <div class="corner-bracket reel-corner tl"></div>
+      <div class="corner-bracket reel-corner tr"></div>
+      <div class="corner-bracket reel-corner bl"></div>
+      <div class="corner-bracket reel-corner br"></div>
       <!-- Your actual photo -->
       <img src="assets/my_pic.jpg" alt="Rezwan Ahamed — Video Editor" class="hero-photo">
       <!-- Play overlay (click opens YouTube showreel) -->
@@ -621,21 +623,8 @@
 
 <!-- ─── SKILLS TICKER ─────────────────────────────── -->
 <div class="ticker">
-  <div class="ticker-track">
-    <!-- Duplicated for seamless loop -->
-    <div class="ticker-item">Video Editing <span>◆</span></div>
-    <div class="ticker-item">Motion Graphics <span>◆</span></div>
-    <div class="ticker-item">Color Grading <span>◆</span></div>
-    <div class="ticker-item">Visual Effects <span>◆</span></div>
-    <div class="ticker-item">Brand Films <span>◆</span></div>
-    <div class="ticker-item">Reels &amp; Shorts <span>◆</span></div>
-    <div class="ticker-item">Video Editing <span>◆</span></div>
-    <div class="ticker-item">Motion Graphics <span>◆</span></div>
-    <div class="ticker-item">Color Grading <span>◆</span></div>
-    <div class="ticker-item">Visual Effects <span>◆</span></div>
-    <div class="ticker-item">Brand Films <span>◆</span></div>
-    <div class="ticker-item">Reels &amp; Shorts <span>◆</span></div>
-  </div>
+  <!-- Populated by JS from TICKER_ITEMS data (auto-duplicated for seamless loop) -->
+  <div class="ticker-track" id="tickerTrack"></div>
 </div>
 
 <div class="section-rule reveal"></div>
@@ -653,57 +642,11 @@
     <a href="https://www.youtube.com/@RezwanAhamed" target="_blank" rel="noopener" class="section-link">All Projects →</a>
   </div>
 
-  <div class="works-grid">
-    <!-- Each work-item: change data-vid to your YouTube video ID -->
-    <!-- YouTube thumbnail is auto-fetched from img.youtube.com -->
-
-    <div class="work-item reveal" data-vid="6In4U9Wb29U">
-      <div class="work-thumb">
-        <img src="https://img.youtube.com/vi/6In4U9Wb29U/maxresdefault.jpg" alt="Showreel 2025" loading="lazy">
-        <div class="work-overlay"><div class="work-play">▶</div></div>
-      </div>
-      <div class="work-info">
-        <div class="work-title">Showreel 2025</div>
-        <div class="work-meta"><span class="work-tag">Motion Graphics</span><span class="work-year">2025</span></div>
-      </div>
-    </div>
-
-    <div class="work-item reveal reveal-d1" data-vid="h_lELxynAhY">
-      <div class="work-thumb">
-        <img src="https://img.youtube.com/vi/h_lELxynAhY/maxresdefault.jpg" alt="Project Two" loading="lazy">
-        <div class="work-overlay"><div class="work-play">▶</div></div>
-      </div>
-      <div class="work-info">
-        <div class="work-title">Brand Film — NovaCo</div>
-        <div class="work-meta"><span class="work-tag">Brand Film</span><span class="work-year">2025</span></div>
-      </div>
-    </div>
-
-    <div class="work-item reveal reveal-d2" data-vid="aSte18D2_YE">
-      <div class="work-thumb">
-        <img src="https://img.youtube.com/vi/aSte18D2_YE/maxresdefault.jpg" alt="Project Three" loading="lazy">
-        <div class="work-overlay"><div class="work-play">▶</div></div>
-      </div>
-      <div class="work-info">
-        <div class="work-title">Cinematic Edit — Travel</div>
-        <div class="work-meta"><span class="work-tag">Video Edit</span><span class="work-year">2024</span></div>
-      </div>
-    </div>
-
-    <div class="work-item reveal reveal-d3" data-vid="u302hpxNDFs">
-      <div class="work-thumb">
-        <img src="https://img.youtube.com/vi/u302hpxNDFs/maxresdefault.jpg" alt="Project Four" loading="lazy">
-        <div class="work-overlay"><div class="work-play">▶</div></div>
-      </div>
-      <div class="work-info">
-        <div class="work-title">Instagram Reels Pack</div>
-        <div class="work-meta"><span class="work-tag">Social Content</span><span class="work-year">2024</span></div>
-      </div>
-    </div>
-  </div>
+  <!-- Populated by JS from WORK_ITEMS data -->
+  <div class="works-grid" id="worksGrid"></div>
 
   <div style="text-align:center; margin-top:48px;" class="reveal">
-    <a href="https://www.youtube.com/@RezwanAhamed" target="_blank" rel="noopener" class="btn-main" style="display:inline-block;">
+    <a href="https://www.youtube.com/@RezwanAhamed" target="_blank" rel="noopener" class="btn-primary btn-main" style="display:inline-block;">
       View All 30+ Videos on YouTube ↗
     </a>
   </div>
@@ -715,7 +658,7 @@
      TESTIMONIALS
 ═══════════════════════════════════════════════════ -->
 <section id="testimonials" class="section-wipe">
-  <div class="testi-header reveal">
+  <div class="section-header reveal">
     <div>
       <p class="section-eyebrow">Kind Words</p>
       <h2 class="section-title">CLIENT<br>REVIEWS</h2>
@@ -723,49 +666,8 @@
   </div>
 
   <div class="testi-track-wrap reveal">
-    <div class="testi-track" id="testiTrack">
-
-      <div class="testi-card">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-quote-mark">"</div>
-        <p class="testi-text">Working with this editor completely transformed our brand presence. The reels he made for us tripled our engagement in under a month. Absolutely knows his craft.</p>
-        <div class="testi-author">
-          <div class="testi-avatar">AK</div>
-          <div><div class="testi-name">Ahmed Khan</div><div class="testi-role">CEO, BrandVault Agency</div></div>
-        </div>
-      </div>
-
-      <div class="testi-card">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-quote-mark">"</div>
-        <p class="testi-text">Delivered way beyond what we expected. The color grading on our product launch video was cinematic — our clients kept asking who edited it. 100% recommend.</p>
-        <div class="testi-author">
-          <div class="testi-avatar">SR</div>
-          <div><div class="testi-name">Sara Rahman</div><div class="testi-role">Marketing Director, NovaCo</div></div>
-        </div>
-      </div>
-
-      <div class="testi-card">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-quote-mark">"</div>
-        <p class="testi-text">Fast turnaround, great communication, and the final edit was fire. He understood our vibe immediately and brought ideas we hadn't even thought of. Will work again.</p>
-        <div class="testi-author">
-          <div class="testi-avatar">JM</div>
-          <div><div class="testi-name">James Miller</div><div class="testi-role">Content Creator, 450K followers</div></div>
-        </div>
-      </div>
-
-      <div class="testi-card">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-quote-mark">"</div>
-        <p class="testi-text">Our YouTube channel grew from 2K to 28K subscribers after we hired him for consistent video editing. The quality and consistency is unmatched at this price point.</p>
-        <div class="testi-author">
-          <div class="testi-avatar">TP</div>
-          <div><div class="testi-name">Tania Patel</div><div class="testi-role">Founder, GrowthMinds</div></div>
-        </div>
-      </div>
-
-    </div>
+    <!-- Populated by JS from TESTIMONIALS data -->
+    <div class="testi-track" id="testiTrack"></div>
 
     <div class="testi-controls">
       <button class="testi-btn" id="testiBtnPrev" aria-label="Previous">←</button>
@@ -788,32 +690,8 @@
     </div>
   </div>
 
-  <div>
-    <div class="svc-item reveal">
-      <div class="svc-num">01</div>
-      <div class="svc-name">Video Editing</div>
-      <div class="svc-desc">Brand films, commercials, YouTube, reels — edited to keep viewers watching till the end.</div>
-      <div class="svc-arrow">→</div>
-    </div>
-    <div class="svc-item reveal">
-      <div class="svc-num">02</div>
-      <div class="svc-name">Motion Graphics</div>
-      <div class="svc-desc">Animated titles, logos, transitions, and full motion design that brings brands to life.</div>
-      <div class="svc-arrow">→</div>
-    </div>
-    <div class="svc-item reveal">
-      <div class="svc-num">03</div>
-      <div class="svc-name">Color Grading</div>
-      <div class="svc-desc">Cinematic color treatment that sets the mood and makes every frame feel intentional.</div>
-      <div class="svc-arrow">→</div>
-    </div>
-    <div class="svc-item reveal">
-      <div class="svc-num">04</div>
-      <div class="svc-name">Social Media Content</div>
-      <div class="svc-desc">Short-form video for Instagram, TikTok, YouTube Shorts — built to perform.</div>
-      <div class="svc-arrow">→</div>
-    </div>
-  </div>
+  <!-- Populated by JS from SERVICES data -->
+  <div id="servicesList"></div>
 </section>
 
 <div class="section-rule reveal"></div>
@@ -901,7 +779,7 @@
       </div>
       <!-- Status messages shown after submit -->
       <div class="form-status" id="formStatus"></div>
-      <button class="f-submit" id="submitBtn" type="button" onclick="sendEmail()">
+      <button class="btn-primary f-submit" id="submitBtn" type="button" onclick="sendEmail()">
         Send Message →
       </button>
     </div>
@@ -924,6 +802,134 @@
 <script>
 
 /* ════════════════════════════════════════
+   SHARED UTILITIES
+   ════════════════════════════════════════ */
+
+/** Lock or unlock page scroll (replaces repeated document.body.style.overflow toggling) */
+function setBodyScroll(locked) {
+  document.body.style.overflow = locked ? 'hidden' : '';
+}
+
+/**
+ * Create an IntersectionObserver that fires a callback once per element, then unobserves.
+ * Replaces three near-identical observer setups (reveal, wipe, stats).
+ */
+function createScrollObserver(selector, options, callback) {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        callback(entry.target, i);
+        obs.unobserve(entry.target);
+      }
+    });
+  }, options);
+  document.querySelectorAll(selector).forEach(el => obs.observe(el));
+  return obs;
+}
+
+/** Attach hover cursor class to all interactive elements (run after data-driven DOM is built) */
+function initCursorHover() {
+  document.querySelectorAll('a, button, .work-item, .svc-item, .tool-tag, .c-social').forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+  });
+}
+
+
+/* ════════════════════════════════════════
+   SITE DATA (single source of truth for repeated content)
+   ════════════════════════════════════════ */
+
+const TICKER_ITEMS = [
+  'Video Editing', 'Motion Graphics', 'Color Grading',
+  'Visual Effects', 'Brand Films', 'Reels & Shorts'
+];
+
+const WORK_ITEMS = [
+  { vid: '6In4U9Wb29U', title: 'Showreel 2025',            tag: 'Motion Graphics', year: '2025', alt: 'Showreel 2025' },
+  { vid: 'h_lELxynAhY', title: 'Brand Film \u2014 NovaCo',         tag: 'Brand Film',      year: '2025', alt: 'Project Two' },
+  { vid: 'aSte18D2_YE', title: 'Cinematic Edit \u2014 Travel',     tag: 'Video Edit',      year: '2024', alt: 'Project Three' },
+  { vid: 'u302hpxNDFs', title: 'Instagram Reels Pack',      tag: 'Social Content',  year: '2024', alt: 'Project Four' },
+];
+
+const TESTIMONIALS = [
+  { initials: 'AK', name: 'Ahmed Khan',  role: 'CEO, BrandVault Agency',        text: 'Working with this editor completely transformed our brand presence. The reels he made for us tripled our engagement in under a month. Absolutely knows his craft.' },
+  { initials: 'SR', name: 'Sara Rahman',  role: 'Marketing Director, NovaCo',    text: 'Delivered way beyond what we expected. The color grading on our product launch video was cinematic \u2014 our clients kept asking who edited it. 100% recommend.' },
+  { initials: 'JM', name: 'James Miller', role: 'Content Creator, 450K followers', text: "Fast turnaround, great communication, and the final edit was fire. He understood our vibe immediately and brought ideas we hadn\u2019t even thought of. Will work again." },
+  { initials: 'TP', name: 'Tania Patel',  role: 'Founder, GrowthMinds',          text: 'Our YouTube channel grew from 2K to 28K subscribers after we hired him for consistent video editing. The quality and consistency is unmatched at this price point.' },
+];
+
+const SERVICES = [
+  { name: 'Video Editing',        desc: 'Brand films, commercials, YouTube, reels \u2014 edited to keep viewers watching till the end.' },
+  { name: 'Motion Graphics',      desc: 'Animated titles, logos, transitions, and full motion design that brings brands to life.' },
+  { name: 'Color Grading',        desc: 'Cinematic color treatment that sets the mood and makes every frame feel intentional.' },
+  { name: 'Social Media Content', desc: 'Short-form video for Instagram, TikTok, YouTube Shorts \u2014 built to perform.' },
+];
+
+
+/* ════════════════════════════════════════
+   DATA-DRIVEN RENDERERS
+   ════════════════════════════════════════ */
+
+/** Render ticker items (duplicated once for seamless CSS loop) */
+function renderTicker() {
+  const track = document.getElementById('tickerTrack');
+  const html = TICKER_ITEMS.map(t => `<div class="ticker-item">${t} <span>\u25c6</span></div>`).join('');
+  track.innerHTML = html + html;
+}
+
+/** Render portfolio work grid */
+function renderWorkItems() {
+  const grid = document.getElementById('worksGrid');
+  const delays = ['', ' reveal-d1', ' reveal-d2', ' reveal-d3'];
+  grid.innerHTML = WORK_ITEMS.map((w, i) => `
+    <div class="work-item reveal${delays[i] || ''}" data-vid="${w.vid}">
+      <div class="work-thumb">
+        <img src="https://img.youtube.com/vi/${w.vid}/maxresdefault.jpg" alt="${w.alt}" loading="lazy">
+        <div class="work-overlay"><div class="work-play">\u25b6</div></div>
+      </div>
+      <div class="work-info">
+        <div class="work-title">${w.title}</div>
+        <div class="work-meta"><span class="work-tag">${w.tag}</span><span class="work-year">${w.year}</span></div>
+      </div>
+    </div>`).join('');
+}
+
+/** Render testimonial cards */
+function renderTestimonials() {
+  const track = document.getElementById('testiTrack');
+  track.innerHTML = TESTIMONIALS.map(t => `
+    <div class="testi-card">
+      <div class="testi-stars">\u2605\u2605\u2605\u2605\u2605</div>
+      <div class="testi-quote-mark">\u201c</div>
+      <p class="testi-text">${t.text}</p>
+      <div class="testi-author">
+        <div class="testi-avatar">${t.initials}</div>
+        <div><div class="testi-name">${t.name}</div><div class="testi-role">${t.role}</div></div>
+      </div>
+    </div>`).join('');
+}
+
+/** Render services list */
+function renderServices() {
+  const list = document.getElementById('servicesList');
+  list.innerHTML = SERVICES.map((s, i) => `
+    <div class="svc-item reveal">
+      <div class="svc-num">${String(i + 1).padStart(2, '0')}</div>
+      <div class="svc-name">${s.name}</div>
+      <div class="svc-desc">${s.desc}</div>
+      <div class="svc-arrow">\u2192</div>
+    </div>`).join('');
+}
+
+/* Build all data-driven sections */
+renderTicker();
+renderWorkItems();
+renderTestimonials();
+renderServices();
+
+
+/* ════════════════════════════════════════
    1. EMAIL JS SETUP
    ════════════════════════════════════════
    Steps to set this up:
@@ -933,53 +939,49 @@
       {{from_name}}, {{from_email}}, {{message}}
    4. Replace the values below with your own IDs
 */
-emailjs.init("sqviHBnfl1Sc2mmoN"); // ← Replace with your EmailJS Public Key
+emailjs.init("sqviHBnfl1Sc2mmoN"); // \u2190 Replace with your EmailJS Public Key
 
-const EMAILJS_SERVICE_ID  = "service_7r9b1ch";  // ← Replace with your Service ID
-const EMAILJS_TEMPLATE_ID = "template_9tkj48c"; // ← Replace with your Template ID
+const EMAILJS_SERVICE_ID  = "service_7r9b1ch";  // \u2190 Replace with your Service ID
+const EMAILJS_TEMPLATE_ID = "template_9tkj48c"; // \u2190 Replace with your Template ID
+
+const FORM_FIELDS = ['name', 'email', 'message'];
+
+function resetSubmitBtn() {
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = "Send Message \u2192";
+  btn.disabled = false;
+}
 
 function sendEmail() {
-  const name    = document.getElementById('name').value.trim();
-  const email   = document.getElementById('email').value.trim();
-  const message = document.getElementById('message').value.trim();
-  const status  = document.getElementById('formStatus');
-  const btn     = document.getElementById('submitBtn');
+  const [name, email, message] = FORM_FIELDS.map(id => document.getElementById(id).value.trim());
+  const status = document.getElementById('formStatus');
+  const btn    = document.getElementById('submitBtn');
 
-  // Basic validation
   if (!name || !email || !message) {
     status.textContent = "Please fill in all fields.";
     status.className = "form-status error";
     return;
   }
 
-  // Disable button while sending
   btn.disabled = true;
   btn.textContent = "Sending...";
   status.className = "form-status";
 
-  // Send via EmailJS
   emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-    from_name:  name,
-    from_email: email,
-    message:    message,
-    to_name:    "Rezwan Ahamed"  // Your name (appears in email template)
+    from_name: name, from_email: email, message: message,
+    to_name: "Rezwan Ahamed"
   })
   .then(() => {
-    status.textContent = "✓ Message sent! I'll get back to you within 24 hours.";
+    status.textContent = "\u2713 Message sent! I'll get back to you within 24 hours.";
     status.className = "form-status success";
-    // Clear form
-    document.getElementById('name').value    = '';
-    document.getElementById('email').value   = '';
-    document.getElementById('message').value = '';
-    btn.textContent = "Send Message →";
-    btn.disabled = false;
+    FORM_FIELDS.forEach(id => { document.getElementById(id).value = ''; });
+    resetSubmitBtn();
   })
   .catch((err) => {
     console.error("EmailJS error:", err);
     status.textContent = "Failed to send. Please email me directly: rezwan.ahamed257@gmail.com";
     status.className = "form-status error";
-    btn.textContent = "Send Message →";
-    btn.disabled = false;
+    resetSubmitBtn();
   });
 }
 
@@ -1029,7 +1031,6 @@ document.addEventListener('mousemove', e => {
   cur.style.left = mx + 'px';
   cur.style.top  = my + 'px';
 });
-// Ring follows with lag
 (function animRing() {
   rx += (mx - rx) * .1;
   ry += (my - ry) * .1;
@@ -1037,11 +1038,7 @@ document.addEventListener('mousemove', e => {
   ring.style.top  = ry + 'px';
   requestAnimationFrame(animRing);
 })();
-// Hover effect on interactive elements
-document.querySelectorAll('a, button, .work-item, .svc-item, .tool-tag, .c-social').forEach(el => {
-  el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
-  el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
-});
+initCursorHover();
 
 
 /* ════════════════════════════════════════
@@ -1053,13 +1050,13 @@ const mobileMenu = document.getElementById('mobileMenu');
 hamburger.addEventListener('click', () => {
   const isOpen = mobileMenu.classList.toggle('open');
   hamburger.classList.toggle('open', isOpen);
-  document.body.style.overflow = isOpen ? 'hidden' : '';
+  setBodyScroll(isOpen);
 });
 
 function closeMobileMenu() {
   mobileMenu.classList.remove('open');
   hamburger.classList.remove('open');
-  document.body.style.overflow = '';
+  setBodyScroll(false);
 }
 
 
@@ -1072,14 +1069,10 @@ const heroOrb     = document.getElementById('heroOrb');
 const aboutVisual = document.getElementById('aboutVisual');
 
 function onScroll() {
-  // Scroll progress bar
   const max = document.documentElement.scrollHeight - window.innerHeight;
   scrollBar.style.width = Math.round(scrollY / max * 100) + '%';
-
-  // Nav background on scroll
   document.getElementById('nav').classList.toggle('scrolled', scrollY > 60);
 
-  // Parallax effects
   const sy = scrollY;
   if (heroReel) heroReel.style.transform = `translateY(${sy * 0.1}px)`;
   if (heroOrb)  heroOrb.style.transform  = `translate(-50%, calc(-50% + ${sy * 0.18}px))`;
@@ -1091,7 +1084,6 @@ function onScroll() {
 }
 window.addEventListener('scroll', onScroll, { passive: true });
 
-// Orb follows mouse in hero
 document.addEventListener('mousemove', e => {
   if (!heroOrb || scrollY > window.innerHeight) return;
   const cx = window.innerWidth  / 2;
@@ -1104,23 +1096,15 @@ document.addEventListener('mousemove', e => {
 
 /* ════════════════════════════════════════
    6. SCROLL REVEAL ANIMATIONS
+      (all three observers use the shared createScrollObserver utility)
    ════════════════════════════════════════ */
-const revObs = new IntersectionObserver(entries => {
-  entries.forEach((e, i) => {
-    if (e.isIntersecting) {
-      setTimeout(() => e.target.classList.add('visible'), i * 80);
-      revObs.unobserve(e.target);
-    }
-  });
-}, { threshold: .1 });
-document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+createScrollObserver('.reveal', { threshold: .1 }, (el, i) => {
+  setTimeout(() => el.classList.add('visible'), i * 80);
+});
 
-const wipeObs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('wipe-in'); wipeObs.unobserve(e.target); }
-  });
-}, { threshold: .06 });
-document.querySelectorAll('.section-wipe').forEach(el => wipeObs.observe(el));
+createScrollObserver('.section-wipe', { threshold: .06 }, (el) => {
+  el.classList.add('wipe-in');
+});
 
 
 /* ════════════════════════════════════════
@@ -1141,23 +1125,21 @@ function animateCounter(el) {
     p < 1 ? requestAnimationFrame(step) : (numEl.textContent = target + suffix, numEl.classList.remove('active'));
   })(performance.now());
 }
-const statObs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) { animateCounter(e.target); statObs.unobserve(e.target); }
-  });
-}, { threshold: .5 });
-document.querySelectorAll('.hstat[data-target]').forEach(el => statObs.observe(el));
+
+createScrollObserver('.hstat[data-target]', { threshold: .5 }, (el) => {
+  animateCounter(el);
+});
 
 
 /* ════════════════════════════════════════
    8. TESTIMONIALS SLIDER
    ════════════════════════════════════════ */
 (function () {
-  const track   = document.getElementById('testiTrack');
-  const cards   = track.querySelectorAll('.testi-card');
+  const track    = document.getElementById('testiTrack');
+  const cards    = track.querySelectorAll('.testi-card');
   const dotsWrap = document.getElementById('testiDots');
-  const btnPrev = document.getElementById('testiBtnPrev');
-  const btnNext = document.getElementById('testiBtnNext');
+  const btnPrev  = document.getElementById('testiBtnPrev');
+  const btnNext  = document.getElementById('testiBtnNext');
 
   function perView() { return window.innerWidth <= 900 ? 1 : 2; }
   const total = cards.length;
@@ -1178,13 +1160,14 @@ document.querySelectorAll('.hstat[data-target]').forEach(el => statObs.observe(e
     track.style.transform = `translateX(-${current * (cards[0].offsetWidth + 24)}px)`;
     dotsWrap.querySelectorAll('.testi-dot').forEach((d, i) => d.classList.toggle('active', i === current));
   }
+  function autoAdvance() { goTo(current < maxIndex() ? current + 1 : 0); }
 
   btnPrev.addEventListener('click', () => goTo(current - 1));
   btnNext.addEventListener('click', () => goTo(current + 1));
 
-  let ap = setInterval(() => goTo(current < maxIndex() ? current + 1 : 0), 4000);
+  let ap = setInterval(autoAdvance, 4000);
   track.addEventListener('mouseenter', () => clearInterval(ap));
-  track.addEventListener('mouseleave', () => { ap = setInterval(() => goTo(current < maxIndex() ? current + 1 : 0), 4000); });
+  track.addEventListener('mouseleave', () => { ap = setInterval(autoAdvance, 4000); });
 
   window.addEventListener('resize', () => { buildDots(); goTo(0); });
   buildDots();
@@ -1202,19 +1185,17 @@ document.querySelectorAll('.hstat[data-target]').forEach(el => statObs.observe(e
   function openVideo(id) {
     frame.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
     lightbox.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    setBodyScroll(true);
   }
   function closeVideo() {
     lightbox.classList.remove('open');
     frame.src = '';
-    document.body.style.overflow = '';
+    setBodyScroll(false);
   }
 
-  // Hero reel click
   const heroReelEl = document.getElementById('heroReel');
   if (heroReelEl) heroReelEl.addEventListener('click', () => openVideo(heroReelEl.dataset.vid));
 
-  // Portfolio items click
   document.querySelectorAll('.work-item[data-vid]').forEach(item => {
     item.addEventListener('click', () => openVideo(item.dataset.vid));
   });
